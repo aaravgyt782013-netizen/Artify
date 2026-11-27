@@ -1,0 +1,10 @@
+{
+  "name": "Artify",
+  "short_name": "Artify",
+  "description": "Stream free, legal music and play your own library offline.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b12",
+  "theme_color": "#0b0b12",
+  "icons": [{ "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
