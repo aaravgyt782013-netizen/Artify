@@ -306,3 +306,5 @@ h1, h2, h3 { margin: 0; }
   .hero-art .hero-cover, .hero-art .cover { width: 160px !important; height: 160px !important; }
   .tl-like .icon-btn, .tl-more .icon-btn { opacity: 1; }
 }
+.menu button:disabled { opacity: .45; }
+.menu button:disabled:hover { background: none; }

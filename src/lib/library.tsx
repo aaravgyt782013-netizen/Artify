@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Playlist, Track } from "./types";
 import { fileDb } from "./db";
+import { audius } from "./audius";
 
 function usePersisted<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
@@ -30,6 +31,11 @@ interface LibraryCtx {
   localTracks: Track[];
   addLocalTracks: (t: Track[]) => void;
   removeLocalTrack: (t: Track) => void;
+  downloads: Track[];
+  downloading: Set<string>;
+  isDownloaded: (id: string) => boolean;
+  download: (t: Track) => Promise<void>;
+  removeDownload: (t: Track) => void;
   recent: Track[];
   pushRecent: (t: Track) => void;
   toast: string | null;
@@ -43,6 +49,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const [playlists, setPlaylists] = usePersisted<Playlist[]>("playlists", []);
   const [localTracks, setLocalTracks] = usePersisted<Track[]>("local", []);
   const [recent, setRecent] = usePersisted<Track[]>("recent", []);
+  const [downloads, setDownloads] = usePersisted<Track[]>("downloads", []);
+  const [downloading, setDownloading] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
   const notify = useCallback((msg: string) => {
@@ -52,6 +60,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const likedIds = useMemo(() => new Set(liked.map((t) => t.id)), [liked]);
+  const downloadIds = useMemo(() => new Set(downloads.map((t) => t.id)), [downloads]);
 
   const value: LibraryCtx = {
     liked,
@@ -99,6 +108,34 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       setLocalTracks((l) => l.filter((x) => x.id !== t.id));
       setLiked((l) => l.filter((x) => x.id !== t.id));
       setPlaylists((ps) => ps.map((p) => ({ ...p, tracks: p.tracks.filter((x) => x.id !== t.id) })));
+    },
+    downloads,
+    downloading,
+    isDownloaded: (id) => downloadIds.has(id),
+    download: async (t) => {
+      if (t.source !== "audius" || downloadIds.has(t.id)) return;
+      if (!t.downloadable) {
+        notify("This artist hasn't enabled offline downloads for this track");
+        return;
+      }
+      setDownloading((d) => new Set(d).add(t.id));
+      try {
+        const res = await fetch(audius.downloadUrl(t));
+        if (!res.ok) throw new Error(String(res.status));
+        const blob = await res.blob();
+        await fileDb.put(`dl:${t.id}`, blob);
+        setDownloads((l) => [{ ...t, addedAt: Date.now() }, ...l.filter((x) => x.id !== t.id)]);
+        notify(`Downloaded “${t.title}” — plays offline`);
+      } catch {
+        notify("Download failed — check your connection");
+      } finally {
+        setDownloading((d) => { const n = new Set(d); n.delete(t.id); return n; });
+      }
+    },
+    removeDownload: (t) => {
+      fileDb.remove(`dl:${t.id}`).catch(() => {});
+      setDownloads((l) => l.filter((x) => x.id !== t.id));
+      notify("Removed download");
     },
     recent,
     pushRecent: (t) => setRecent((r) => [t, ...r.filter((x) => x.id !== t.id)].slice(0, 30)),

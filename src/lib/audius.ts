@@ -18,6 +18,7 @@ function mapTrack(t: any): Track {
     source: "audius",
     genre: t.genre,
     plays: t.play_count,
+    downloadable: Boolean(t.is_downloadable ?? t.downloadable ?? t.download?.is_downloadable),
   };
 }
 
@@ -65,6 +66,10 @@ async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
 }
 
 export const audius = {
+  downloadUrl(track: Track) {
+    const rawId = track.id.replace(/^audius:/, "");
+    return `${BASE}/tracks/${rawId}/download?app_name=${APP}`;
+  },
   streamUrl(track: Track) {
     const rawId = track.id.replace(/^audius:/, "");
     return `${BASE}/tracks/${rawId}/stream?app_name=${APP}`;

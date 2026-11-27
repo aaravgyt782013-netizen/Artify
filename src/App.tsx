@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { App as CapApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { useNav } from "./lib/nav";
 import { usePlayer } from "./lib/player";
 import { useLibrary } from "./lib/library";
@@ -31,6 +33,17 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [queueOpen, setQueueOpen] = useState(false);
   const { view } = nav;
+
+  // Android hardware back button: go back in Artify, or minimise at the root.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const sub = CapApp.addListener("backButton", () => {
+      if (queueOpen) setQueueOpen(false);
+      else if (nav.canBack) nav.back();
+      else CapApp.minimizeApp();
+    });
+    return () => { sub.then((h) => h.remove()); };
+  }, [nav, queueOpen]);
 
   // Keyboard shortcuts.
   useEffect(() => {

@@ -11,6 +11,7 @@ export interface Track {
   genre?: string;
   plays?: number;
   localId?: string; // IndexedDB key for local files
+  downloadable?: boolean; // artist allows offline downloads
   addedAt?: number;
 }
 

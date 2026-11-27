@@ -60,7 +60,7 @@ export function TrackList({ tracks, showPlays, onRemove, removeLabel, compact }:
               <span className="tl-text">
                 <span className="t">{t.title}</span>
                 <span className="a">
-                  {t.source === "local" && <Offline size={12} className="offline-badge" />}
+                  {(t.source === "local" || lib.isDownloaded(t.id)) && <Offline size={12} className="offline-badge" />}
                   {t.artist}
                 </span>
               </span>

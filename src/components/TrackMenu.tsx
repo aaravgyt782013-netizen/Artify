@@ -30,6 +30,15 @@ export function TrackMenu({ track, onRemove, removeLabel }: { track: Track; onRe
           <button onClick={act(() => player.playNext(track))}>Play next</button>
           <button onClick={act(() => player.addToQueue(track))}>Add to queue</button>
           <button onClick={act(() => lib.toggleLike(track))}>{lib.isLiked(track.id) ? "Remove from Liked Songs" : "Save to Liked Songs"}</button>
+          {track.source === "audius" && (lib.isDownloaded(track.id) ? (
+            <button onClick={act(() => lib.removeDownload(track))}>Remove download</button>
+          ) : (
+            <button disabled={!track.downloadable || lib.downloading.has(track.id)}
+              title={track.downloadable ? "" : "The artist hasn't enabled downloads"}
+              onClick={act(() => lib.download(track))}>
+              {lib.downloading.has(track.id) ? "Downloading…" : track.downloadable ? "Download for offline" : "Download unavailable"}
+            </button>
+          ))}
           <button onClick={() => setSub((s) => !s)}>Add to playlist ›</button>
           {sub && (
             <div className="submenu">

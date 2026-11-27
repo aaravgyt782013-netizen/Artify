@@ -16,6 +16,20 @@ A modern, Spotify-style music streaming web app with its own identity and logo.
 ### Keyboard shortcuts
 `Space` play/pause · `Shift+→/←` next/prev · `↑/↓` volume · `M` mute · `S` shuffle · `R` repeat · `Q` queue · `/` search
 
+## 📱 Android app (APK)
+Each push runs **GitHub Actions** (`.github/workflows/android-release.yml`), which builds the Android app with Capacitor and posts **`Artify.apk`** to the repo's **Releases** page.
+To install it, download `Artify.apk` from the latest release on your phone, open it, and allow "Install unknown apps" when Android asks.
+
+To build it yourself, you need Android Studio / the Android SDK and Java 21:
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleDebug   # → app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Offline listening
+- **Downloads**: if an artist allows downloads on Audius, choose ⋯ → *Download for offline*. The file is saved on your device and plays with no network.
+- **Your own files**: use Offline Library → *Import music* to add MP3/FLAC/etc. you own. They play fully offline.
+
 ## Run it
 ```bash
 npm install

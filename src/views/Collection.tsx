@@ -93,7 +93,7 @@ export function LocalLibrary() {
       onDragLeave={() => setDrag(false)}
       onDrop={(e) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer.files); }}>
       <Header kind="Offline" title="Offline Library" subtitle="Saved on this device — plays without internet" color="#0f766e"
-        tracks={lib.localTracks}
+        tracks={[...lib.downloads, ...lib.localTracks]}
         art={<div className="lib-art offline-art hero-cover"><Offline size={72} /></div>}
         extra={
           <>
@@ -104,9 +104,16 @@ export function LocalLibrary() {
           </>
         } />
       <div className="pad">
+        {lib.downloads.length > 0 && (
+          <>
+            <h2 className="section-title">Downloaded from Artify</h2>
+            <TrackList tracks={lib.downloads} onRemove={(i) => lib.removeDownload(lib.downloads[i])} removeLabel="Remove download" />
+          </>
+        )}
+        {lib.downloads.length > 0 && lib.localTracks.length > 0 && <h2 className="section-title">Imported from your device</h2>}
         {lib.localTracks.length ? (
           <TrackList tracks={lib.localTracks} onRemove={(i) => lib.removeLocalTrack(lib.localTracks[i])} removeLabel="Delete from device" />
-        ) : (
+        ) : !lib.downloads.length && (
           <Empty title="Bring your own music"
             text="Drag & drop MP3, M4A, FLAC, WAV or OGG files here (or use Import). They're stored on this device in full original quality and play with no internet at all. Tip: name files “Artist - Title.mp3”." />
         )}

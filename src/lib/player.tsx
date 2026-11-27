@@ -53,6 +53,9 @@ function shuffled<T>(arr: T[]) {
 }
 
 async function resolveSrc(t: Track): Promise<string> {
+  // Downloaded (artist-permitted) tracks play from the device first.
+  const dl = await fileDb.get(`dl:${t.id}`).catch(() => undefined);
+  if (dl) return URL.createObjectURL(dl);
   if (t.source === "local" && t.localId) {
     const blob = await fileDb.get(t.localId);
     if (!blob) throw new Error("File missing from this device");

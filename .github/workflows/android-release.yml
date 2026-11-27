@@ -1,0 +1,64 @@
+name: Build Android APK & Release
+
+on:
+  push:
+    branches: ["**"]
+    paths-ignore: ["README.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install & build web app
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../Artify.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Artify-apk
+          path: Artify.apk
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}-build${{ github.run_number }}"
+          gh release create "$TAG" Artify.apk \
+            --target "${{ github.sha }}" \
+            --title "Artify ${VERSION} (build ${{ github.run_number }})" \
+            --latest \
+            --notes "Artify for Android. Download **Artify.apk** below, open it on your phone, and allow installing from this source if Android asks.
+
+          Built from \`${{ github.ref_name }}\` @ ${{ github.sha }}."

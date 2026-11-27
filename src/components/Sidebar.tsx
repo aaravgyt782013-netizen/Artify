@@ -48,7 +48,7 @@ export function Sidebar() {
             <div className="lib-art offline-art"><Offline size={20} /></div>
             <div className="lib-meta">
               <span className="t">Offline Library</span>
-              <span className="a">Your files • {lib.localTracks.length} songs</span>
+              <span className="a">On this device • {lib.localTracks.length + lib.downloads.length} songs</span>
             </div>
           </button>
           {lib.playlists.map((p) => (
